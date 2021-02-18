@@ -81,7 +81,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:text="0:00"
-            android:text="@{gameViewModel.elapsedTimeText}"/>
+            android:text="@{gameViewModel.remainingTimeString}"/>
 
         <TextView
             android:id="@+id/score_text"
