@@ -22,6 +22,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.android.guesstheword.R
@@ -32,6 +34,11 @@ import com.example.android.guesstheword.databinding.ScoreFragmentBinding
  */
 class ScoreFragment : Fragment() {
 
+    private lateinit var viewModel: ScoreViewModel
+    private lateinit var viewModelFactory: ScoreViewModelFactory
+
+    private lateinit var binding: ScoreFragmentBinding
+
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -39,26 +46,42 @@ class ScoreFragment : Fragment() {
     ): View? {
 
         // Inflate view and obtain an instance of the binding class.
-        val binding: ScoreFragmentBinding = DataBindingUtil.inflate(
+        binding = DataBindingUtil.inflate(
                 inflater,
                 R.layout.score_fragment,
                 container,
                 false
         )
 
-        // Get args using by navArgs property delegate
-       /* val scoreFragmentArgs by navArgs<ScoreFragmentArgs>()
-        binding.scoreText.text = scoreFragmentArgs.score.toString()*/
-        binding.playAgainButton.setOnClickListener { onPlayAgain() }
-
         arguments?.let { args ->
-            binding.scoreText.text = ScoreFragmentArgs.fromBundle(args).score.toString()
+            viewModelFactory = ScoreViewModelFactory(ScoreFragmentArgs.fromBundle(args).score)
+            viewModel = ViewModelProvider(this, viewModelFactory).get(ScoreViewModel::class.java)
         }
 
+        // Get args using by navArgs property delegate
+        /* val scoreFragmentArgs by navArgs<ScoreFragmentArgs>()
+         binding.scoreText.text = scoreFragmentArgs.score.toString()*/
+        binding.playAgainButton.setOnClickListener {
+            viewModel.onPlayAgainClicked()
+        }
+
+        registerObservers()
         return binding.root
     }
 
-    private fun onPlayAgain() {
-        findNavController().navigate(ScoreFragmentDirections.actionRestart())
+    private fun registerObservers() {
+        with(viewModel) {
+
+            score.observe(viewLifecycleOwner, Observer { value ->
+                binding.scoreText.text = value.toString()
+            })
+
+            eventPlayAgainClicked.observe(viewLifecycleOwner, Observer { value ->
+                if (value) {
+                    findNavController().navigate(ScoreFragmentDirections.actionRestart())
+                    onPlayAgainCompleted()
+                }
+            })
+        }
     }
 }
