@@ -45,27 +45,16 @@ class ScoreFragment : Fragment() {
             savedInstanceState: Bundle?
     ): View? {
 
-        // Inflate view and obtain an instance of the binding class.
-        binding = DataBindingUtil.inflate(
-                inflater,
-                R.layout.score_fragment,
-                container,
-                false
-        )
+        binding = ScoreFragmentBinding.inflate(inflater,container,false)
+        // Get args using by navArgs property delegate:
+        val scoreFragmentArgs by navArgs<ScoreFragmentArgs>()
 
         arguments?.let { args ->
-            viewModelFactory = ScoreViewModelFactory(ScoreFragmentArgs.fromBundle(args).score)
+            viewModelFactory = ScoreViewModelFactory(scoreFragmentArgs.score)
             viewModel = ViewModelProvider(this, viewModelFactory).get(ScoreViewModel::class.java)
             binding.scoreViewModel = viewModel
-            binding.lifecycleOwner = this
+            binding.lifecycleOwner = this //this is because we are observing liveData in the XML
         }
-
-        // Get args using by navArgs property delegate
-        /* val scoreFragmentArgs by navArgs<ScoreFragmentArgs>()
-         binding.scoreText.text = scoreFragmentArgs.score.toString()*/
-       /* binding.playAgainButton.setOnClickListener {
-            viewModel.onPlayAgainClicked()
-        }*/
 
         registerObservers()
         return binding.root
@@ -73,11 +62,6 @@ class ScoreFragment : Fragment() {
 
     private fun registerObservers() {
         with(viewModel) {
-
-            score.observe(viewLifecycleOwner, Observer { value ->
-                binding.scoreText.text = value.toString()
-            })
-
             eventPlayAgainClicked.observe(viewLifecycleOwner, Observer { value ->
                 if (value) {
                     findNavController().navigate(ScoreFragmentDirections.actionRestart())
